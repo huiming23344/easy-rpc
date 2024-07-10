@@ -1,2 +1,3 @@
-*.mod
-*.sum
+/.idea
+
+！.gitignore
