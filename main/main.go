@@ -39,7 +39,6 @@ func main() {
 		h := &codec.Header{
 			ServiceMethod: "Foo.Sum",
 			Seq:           uint64(i),
-			Error:         "err",
 		}
 		_ = cc.Write(h, fmt.Sprintf("geerpc req %d", h.Seq))
 		_ = cc.ReadHeader(h)
