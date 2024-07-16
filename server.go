@@ -36,9 +36,9 @@ func NewServer() *Server {
 var DefaultServer = NewServer()
 
 // Accept 从 listener 接收连接并为传入的连接服务每一个请求
-func (server *Server) Accept(lis *net.Listener) {
+func (server *Server) Accept(lis net.Listener) {
 	for {
-		conn, err := (*lis).Accept()
+		conn, err := lis.Accept()
 		if err != nil {
 			log.Println("rpc server: accept error:", err)
 			return
@@ -48,7 +48,7 @@ func (server *Server) Accept(lis *net.Listener) {
 }
 
 // Accept 从 listener 接收连接并为传入的连接服务每一个请求
-func Accept(lis *net.Listener) { DefaultServer.Accept(lis) }
+func Accept(lis net.Listener) { DefaultServer.Accept(lis) }
 
 // ServeConn 来在单个连接上运行服务.
 // ServeConn 会阻塞，直到客户端断开连接都会一直服务。
