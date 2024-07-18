@@ -47,7 +47,6 @@ func (m *methodType) newReplyv() reflect.Value {
 		// 是 Slice，返回值设置为新的 Slice 类型
 		replyv.Elem().Set(reflect.MakeSlice(m.ReplyType.Elem(), 0, 0))
 	default:
-		panic("unhandled default case")
 	}
 	return replyv
 }
