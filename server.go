@@ -74,13 +74,13 @@ func (server *Server) ServeConn(conn io.ReadWriteCloser) {
 	if f == nil {
 		log.Printf("rpc server: invalid codec type %s", opt.CodecType)
 	}
-	server.serveCodec(f(conn))
+	server.serveCodec(f(conn), &opt)
 }
 
 // invalidRequest 是当发生错误时持有响应参数的占位符
 var invalidRequest = struct{}{}
 
-func (server *Server) serveCodec(cc codec.Codec) {
+func (server *Server) serveCodec(cc codec.Codec, opt *Option) {
 	sending := new(sync.Mutex) // 确保发送一个完整的响应
 	wg := new(sync.WaitGroup)  // 等待所有的请求都处理完成
 	for {
@@ -94,7 +94,7 @@ func (server *Server) serveCodec(cc codec.Codec) {
 			continue
 		}
 		wg.Add(1)
-		go server.handleRequest(cc, req, sending, wg, time.Second*10)
+		go server.handleRequest(cc, req, sending, wg, opt.HandleTimeout)
 	}
 	wg.Wait()
 	_ = cc.Close()
