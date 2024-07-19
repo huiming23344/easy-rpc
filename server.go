@@ -10,19 +10,23 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 )
 
 const MagicNumber = 0x233333
 
 // Option 编解码方式
 type Option struct {
-	MagicNumber int        // MagicNumber 标记这是一个 easy_rpc 请求
-	CodecType   codec.Type // 客户端可以选择不同的 Codec 来编码 body
+	MagicNumber    int           // MagicNumber 标记这是一个 easy_rpc 请求
+	CodecType      codec.Type    // 客户端可以选择不同的 Codec 来编码 body
+	ConnectTimeout time.Duration // 0 means no limit
+	HandleTimeout  time.Duration
 }
 
 var DefaultOption = &Option{
-	MagicNumber: MagicNumber,
-	CodecType:   codec.GobType,
+	MagicNumber:    MagicNumber,
+	CodecType:      codec.GobType,
+	ConnectTimeout: time.Second * 10,
 }
 
 // Server 代表了一个 RPC Server.
