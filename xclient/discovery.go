@@ -31,8 +31,8 @@ type MultiServersDiscovery struct {
 	index   int // record the selected position for robin algorithm
 }
 
-// NewMultiServersDiscovery 创建一个新的 MultiServersDiscovery 实例
-func NewMultiServersDiscovery(servers []string) *MultiServersDiscovery {
+// NewMultiServerDiscovery 创建一个新的 MultiServersDiscovery 实例
+func NewMultiServerDiscovery(servers []string) *MultiServersDiscovery {
 	d := &MultiServersDiscovery{
 		servers: servers,
 		r:       rand.New(rand.NewSource(time.Now().UnixNano())),
