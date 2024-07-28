@@ -1,6 +1,7 @@
 package easy_rpc
 
 import (
+	"bufio"
 	"context"
 	"easy-rpc/codec"
 	"encoding/json"
@@ -9,6 +10,8 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -268,5 +271,45 @@ func (client *Client) Call(ctx context.Context, serviceMethod string, args, repl
 		return errors.New("rpc client: call failed: " + ctx.Err().Error())
 	case call := <-call.Done:
 		return call.Error
+	}
+}
+
+// NewHttpClient 通过 HTTP 传输协议新建了一个客户端实例
+func NewHTTPClient(conn net.Conn, opt *Option) (*Client, error) {
+	_, _ = io.WriteString(conn, fmt.Sprintf("CONNECT %s HTTP/1.0\n\n", defaultRPCPath))
+
+	// 在切换到 RPC 协议前，需要成功的 HTTP 响应
+	resp, err := http.ReadResponse(bufio.NewReader(conn), &http.Request{Method: "CONNECT"})
+	if err == nil && resp.Status == connected {
+		return NewClient(conn, opt)
+	}
+	if err == nil {
+		err = errors.New("unexpected HTTP response: " + resp.Status)
+	}
+	return nil, err
+}
+
+// DialHTTP 在特定的网络地址连接一个 HTTP RPC 服务器
+// 在默认的 HTTP RPC 路径进行监听
+func DialHTTP(network, address string, opts ...*Option) (*Client, error) {
+	return dialTimeout(NewHTTPClient, network, address, opts...)
+}
+
+// XDial 会根据 rpcAddr 第一个参数
+// 来调用不同的函数来连接到一个 RPC 服务器。
+// rpcAddr 是一种通用的格式 (protocol@addr) 来表示一个 rpc 服务器
+// 例如，http@10.0.0.1:7001, tcp@10.0.0.1:9999, unix@/tmp/easy_rpc.sock
+func XDial(rpcAddr string, opts ...*Option) (*Client, error) {
+	parts := strings.Split(rpcAddr, "@")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("rpc client err: wrong format '%s', expect protocol@addr", rpcAddr)
+	}
+	protocol, addr := parts[0], parts[1]
+	switch protocol {
+	case "http":
+		return DialHTTP("tcp", addr, opts...)
+	default:
+		// tcp, unix or other transport protocol
+		return Dial(protocol, addr, opts...)
 	}
 }
