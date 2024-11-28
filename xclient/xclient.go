@@ -89,18 +89,19 @@ func (xc *XClient) Broadcast(ctx context.Context, serviceMethod string, args, re
 			var cloneReply interface{}
 			if reply != nil {
 				cloneReply = reflect.New(reflect.ValueOf(reply).Elem().Type()).Interface()
-				err := xc.call(rpcAddr, ctx, serviceMethod, args, cloneReply)
-				mu.Lock()
-				if err != nil && e == nil {
-					e = err
-					cancel() // 如果有任何调用失败，取消其他未完成的调用
-				}
-				if err == nil && !replyDone {
-					reflect.ValueOf(reply).Elem().Set(reflect.ValueOf(cloneReply).Elem())
-					replyDone = true
-				}
-				mu.Unlock()
 			}
+			err := xc.call(rpcAddr, ctx, serviceMethod, args, cloneReply)
+			mu.Lock()
+			if err != nil && e == nil {
+				e = err
+				cancel() // 如果有任何调用失败，取消其他未完成的调用
+			}
+			if err == nil && !replyDone {
+				reflect.ValueOf(reply).Elem().Set(reflect.ValueOf(cloneReply).Elem())
+				replyDone = true
+			}
+			mu.Unlock()
+
 		}(rpcAddr)
 	}
 	wg.Wait()
